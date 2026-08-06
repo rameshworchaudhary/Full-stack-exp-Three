@@ -2,6 +2,14 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const getJwtSecret = () => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+
+  return process.env.JWT_SECRET;
+};
+
 const ensureUserRoleColumn = async () => {
   try {
     await db.execute(
@@ -104,7 +112,7 @@ const loginUser = async (req, res) => {
         email: user[0].email,
         role
       },
-      process.env.JWT_SECRET,
+      getJwtSecret(),
       {
         expiresIn: "1d"
       }
@@ -131,6 +139,33 @@ const loginUser = async (req, res) => {
 
   }
 
+};
+
+const getProfile = async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      "SELECT id, name, email, role FROM users WHERE id = ?",
+      [req.user.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = rows[0];
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: (user.role || "viewer").toLowerCase(),
+      },
+    });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    res.status(500).json({ message: error.message || "Server Error" });
+  }
 };
 
 const getUserCounts = async (req, res) => {
@@ -184,6 +219,7 @@ const getUsersByRole = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  getProfile,
   getUserCounts,
   getUsersByRole,
 };

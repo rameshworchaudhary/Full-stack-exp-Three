@@ -1,10 +1,13 @@
 {
   "name": "auth-system",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Auth system backend for Vercel deployment",
+  "main": "server/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "build": "npm --prefix client run build",
+    "test": "echo \"No tests configured\""
   },
   "keywords": [],
   "author": "",
